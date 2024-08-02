@@ -5,6 +5,7 @@ import os
 from time import *
 import json
 from werkzeug.datastructures import ImmutableMultiDict
+import shutil
 
 load_dotenv()
 
@@ -78,8 +79,17 @@ def generate():
 
 @app.route('/api/quitGenerate', methods=['POST'])    
 def quit_generate():
-    # TODO
-    pass
+    if request.is_json:
+        data = request.get_json()
+        process_id = data["process_id"]
+        
+        try:
+            shutil.rmtree(os.path.join(current_path, "db", process_id))
+            return jsonify({'status': True}), 200
+        except:
+            return jsonify({'status': False}), 200
+    else:
+        return jsonify({'error': 'Request data should be JSON!'}), 400
 
 @app.route('/api/prompt', methods=['POST'])
 def prompt_llm():
