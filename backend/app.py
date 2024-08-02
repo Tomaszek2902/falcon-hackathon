@@ -2,23 +2,83 @@ from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from ai71 import AI71 
 import os
+from time import *
+import json
+from werkzeug.datastructures import ImmutableMultiDict
 
 load_dotenv()
 
 app = Flask(__name__)
+current_path = os.path.abspath(os.getcwd())
 falcon_ai_client = AI71(os.getenv("FALCON_API_KEY"))
 
 # Endpoints
-#   1. Generate Exam Paper API
+#   1.  Set Paper API
         # - POST API
-        # - Request: Subject, Question Format, Content (PYP / Exercises)
-        # - Response: New, Generated Exam Paper
-#   2. Test AI Prompt API
+        # - Request: Subject, Difficulty, Question Format, No. of Questions
+        # - Response: boolean to indicate status (id for db file directory)
+#   2. Upload Content API
+        # - POST API
+        # - Request: Content (PYP / Exercises), id for db file directory
+        # - Response: boolean to indicate status
+#   3. Generate Exam Paper API
+        # - POST API
+        # - Request: id for db file directory
+        # - Response: response paper
+#   4. Quit Paper API
+        # - POST API
+        # - Request: id for db file directory
+        # - Response: boolean to indicate status
+#   5. Test AI Prompt API
         # - POST API
         # - Follow AI71 Docs
 
-@app.route('/api/paper', methods=['POST'])
-def generate_exam_paper():
+@app.route('/api/setPaper', methods=['POST'])
+def set_paper():
+    if request.is_json:
+        data = request.get_json()
+        subject = data['subject']
+        difficulty = data['difficulty']
+        formatQ = data['formatQ']
+        numQ = data['numQ']
+        
+        try:        
+            process_id = str(time_ns())
+            new_file_path = os.path.join(current_path, "db", process_id)
+            os.makedirs(new_file_path)
+            
+            with open(os.path.join(new_file_path, "metadata.txt"), "w") as file:
+                filedata = json.dumps(
+                    {
+                        "subject": subject,
+                        "difficulty": difficulty,
+                        "formatQ": formatQ,
+                        "numQ": numQ
+                    }
+                )
+                file.write(filedata)
+            return jsonify({'status': True, "process_id": process_id}), 200
+        except Exception as e:
+            print(e)
+            return jsonify({'status': False}), 400
+    else:
+        return jsonify({'error': 'Request data should be JSON!'}), 400
+
+@app.route('/api/uploadContent', methods=['POST'])
+def upload_content():
+    process_id = dict(request.form)["process_id"]
+    content = request.files["content"]
+    # TODO
+    pass
+
+@app.route('/api/generate', methods=['POST'])
+def generate():
+    # TODO
+    pass
+
+@app.route('/api/quitGenerate', methods=['POST'])    
+def quit_generate():
+    # TODO
     pass
 
 @app.route('/api/prompt', methods=['POST'])
@@ -33,7 +93,7 @@ def prompt_llm():
             messages=[
                 {"role": "system", "content": context},
                 {"role": "user", "content": prompt},
-            ],
+            ]
         ).choices[0].message.content
 
         return jsonify({'response': llm_response}), 200
