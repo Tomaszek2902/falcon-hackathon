@@ -14,9 +14,16 @@ idna==3.7
 itsdangerous==2.2.0
 Jinja2==3.1.4
 MarkupSafe==2.1.5
+packaging==24.1
+pdfminer3k==1.3.4
+pillow==10.4.0
+ply==3.11
 pydantic==2.8.2
 pydantic_core==2.20.1
+pypdf==4.3.1
+pytesseract==0.3.10
 python-dotenv==1.0.1
+slate3k==0.5.3
 sniffio==1.3.1
 typing_extensions==4.12.2
 Werkzeug==3.0.3

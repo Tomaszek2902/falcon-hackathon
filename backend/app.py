@@ -1,19 +1,25 @@
+import re
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from ai71 import AI71 
-import os
-from time import *
-import json
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.utils import secure_filename
-import shutil
 from pypdf import PdfReader 
+from time import *
+from pdf2image import convert_from_path
+from PIL import Image
+
+import os
+import json
+import shutil
+import pytesseract
 
 load_dotenv()
 
 app = Flask(__name__)
 current_path = os.path.abspath(os.getcwd())
 falcon_ai_client = AI71(os.getenv("FALCON_API_KEY"))
+pytesseract.pytesseract.tesseract_cmd = os.path.join(current_path, "tesseract", "tesseract.exe")
 
 # Endpoints
 #   1.  Set Paper API
@@ -84,8 +90,49 @@ def upload_content():
         
 @app.route('/api/generate', methods=['POST'])
 def generate():
-    # TODO
-    pass
+    if request.is_json:
+        data = request.get_json()
+        process_id = data['process_id']
+        metadata = {}   # subject, difficulty, formatQ, numQ
+        
+        db_path = os.path.join(current_path, "db", process_id)
+        if not os.path.exists(db_path):
+            return jsonify({'error': 'Data does not exist!'}), 400 
+        
+        # Read metadata
+        with open(os.path.join(db_path, "metadata.txt"), "r") as m_file:
+            metadata = json.loads(m_file.read())
+
+        # Create training data
+        db_contents_path = os.path.join(db_path, "contents")
+        if not os.path.exists(db_contents_path):
+            return jsonify({'error': 'No contents uploaded for this process!'}), 400 
+
+        with open(os.path.join(db_path, "training_data.txt"), "a+") as t_file:
+            contents_name_list = os.listdir(db_contents_path)
+            for content_name in contents_name_list:
+                t_file.write(f"[{content_name}]\n")
+                filepath = os.path.join(db_contents_path, content_name)
+                doc = convert_from_path(filepath, poppler_path=os.path.join(current_path, "poppler\poppler-24.07.0\Library\\bin"))
+
+                raw_txt_data = ""
+                for no, data in enumerate(doc):                
+                    raw_txt_data += re.sub("\\\\n|www.sgexam.com", "", str(pytesseract.image_to_string(data).encode("utf-8")))
+                
+                qa_list = re.split(r'END OF PAPER', raw_txt_data)
+                questions = []
+                answers = []
+
+                for i in range(0, len(qa_list) - 1):
+                    questions += filter(lambda x: re.match('^\d+\.', x), re.split(r'(?=\d+\.)', qa_list[i]))
+                answers += filter(lambda x: re.match('^Q\d+\)', x), re.split(r'(?=Q\d+\))', qa_list[len(qa_list) - 1]))
+                
+                print(questions)
+                print(answers)
+                t_file.write("========================\n")
+            return jsonify({'status': True}), 200
+    else:
+        return jsonify({'error': 'Request data should be JSON!'}), 400
 
 @app.route('/api/quitGenerate', methods=['POST'])    
 def quit_generate():
