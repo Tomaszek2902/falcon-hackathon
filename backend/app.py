@@ -5,7 +5,9 @@ import os
 from time import *
 import json
 from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.utils import secure_filename
 import shutil
+from pypdf import PdfReader 
 
 load_dotenv()
 
@@ -60,7 +62,6 @@ def set_paper():
                 file.write(filedata)
             return jsonify({'status': True, "process_id": process_id}), 200
         except Exception as e:
-            print(e)
             return jsonify({'status': False}), 400
     else:
         return jsonify({'error': 'Request data should be JSON!'}), 400
@@ -68,10 +69,19 @@ def set_paper():
 @app.route('/api/uploadContent', methods=['POST'])
 def upload_content():
     process_id = dict(request.form)["process_id"]
-    content = request.files["content"]
-    # TODO
-    pass
-
+    contents = request.files.getlist("content")
+    
+    try:
+        for file in contents:
+            name = secure_filename(file.filename)
+            if not os.path.exists(os.path.join(current_path, "db", process_id, "contents")):
+                os.makedirs(os.path.join(current_path, "db", process_id, "contents"))
+            file.save(os.path.join(current_path, "db", process_id, "contents", name))
+        return jsonify({'status': True, "process_id": process_id}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'status': False}), 400
+        
 @app.route('/api/generate', methods=['POST'])
 def generate():
     # TODO
