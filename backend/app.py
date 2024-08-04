@@ -9,6 +9,7 @@ from pypdf import PdfReader
 from time import *
 from pdf2image import convert_from_path
 from PIL import Image
+from flask_cors import CORS
 
 import os
 import json
@@ -89,7 +90,7 @@ def upload_content():
     except Exception as e:
         print(e)
         return jsonify({'status': False}), 400
-        
+
 @app.route('/api/generate', methods=['POST'])
 def generate():
     if request.is_json:
@@ -120,17 +121,17 @@ def generate():
                 raw_txt_data = ""
                 for no, data in enumerate(doc):                
                     raw_txt_data += re.sub("\\\\n|www.sgexam.com", "", str(pytesseract.image_to_string(data).encode("utf-8")))
-                
+
                 qa_list = re.split(r'END OF PAPER', raw_txt_data)
-                questions = []
-                answers = []
 
                 for i in range(0, len(qa_list) - 1):
-                    questions += filter(lambda x: re.match('^\d+\.', x), re.split(r'(?=\d+\.)', qa_list[i]))
-                answers += filter(lambda x: re.match('^Q\d+\)', x), re.split(r'(?=Q\d+\))', qa_list[len(qa_list) - 1]))
-                
-                print(questions)
-                print(answers)
+                    questions = filter(lambda x: re.match('^\d+\.', x), re.split(r'(?=\d+\.)', qa_list[i]))
+                    answers = filter(lambda x: re.match('^Q\d{1,2}', x), re.split(r'(?=Q\d{1,2})', qa_list[len(qa_list) - 1]))
+                    t_file.write("\n\nQuestions: \n\n")
+                    t_file.write("\n\n".join(questions))
+                    t_file.write("\n\n")
+                    t_file.write("Answers: \n\n")
+                    t_file.write("\n\n".join(answers))
                 t_file.write("========================\n")
             return jsonify({'status': True}), 200
     else:
