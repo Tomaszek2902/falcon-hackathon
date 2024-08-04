@@ -1,1 +1,0 @@
-{"subject": "Maths", "difficulty": "6 / 10", "formatQ": "MCQ, Short-Answers", "numQ": 30}
