@@ -8,6 +8,7 @@ from pypdf import PdfReader
 from time import *
 from pdf2image import convert_from_path
 from PIL import Image
+from flask_cors import CORS
 
 import os
 import json
@@ -17,6 +18,8 @@ import pytesseract
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
+
 current_path = os.path.abspath(os.getcwd())
 falcon_ai_client = AI71(os.getenv("FALCON_API_KEY"))
 pytesseract.pytesseract.tesseract_cmd = os.path.join(current_path, "tesseract", "tesseract.exe")
@@ -87,7 +90,7 @@ def upload_content():
     except Exception as e:
         print(e)
         return jsonify({'status': False}), 400
-        
+
 @app.route('/api/generate', methods=['POST'])
 def generate():
     if request.is_json:
