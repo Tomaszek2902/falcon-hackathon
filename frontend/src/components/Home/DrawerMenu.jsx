@@ -1,14 +1,26 @@
-import React from "react";
-import { Drawer, List, ListItem, ListItemText, Box } from "@mui/material";
+import React, { useState } from "react";
+import { Button, Drawer, List, ListItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { generatePaperService } from "../../services/SetAndGenerate";
+import { saveAs } from "file-saver";
 
 const drawerWidth = 240;
 
-const DrawerMenu = ({ items }) => {
+const DrawerMenu = ({ tabs, processId }) => {
   const navigate = useNavigate();
 
   const handleListItemClick = (id) => {
-    navigate(`/queries/${id}`);
+    navigate(`/tabs/${id}`);
+  };
+
+  const handleGeneratePaperClick = async () => {
+    try {
+      const response = await generatePaperService(processId);
+      const blob = new Blob([response], { type: "application/pdf" });
+      saveAs(blob, "generated-paper.pdf");
+    } catch (error) {
+      console.error("Error generating paper:", error);
+    }
   };
 
   return (
@@ -26,16 +38,22 @@ const DrawerMenu = ({ items }) => {
       anchor="left"
     >
       <List>
-        {items.map((item) => (
+        {tabs.map((tab) => (
           <ListItem
+            key={tab.id}
+            onClick={() => handleListItemClick(tab.id)}
             button
-            key={item.id}
-            onClick={() => handleListItemClick(item.id)}
           >
-            <ListItemText primary={item.query} />
+            {tab.query}
           </ListItem>
         ))}
       </List>
+      <Button
+        sx={{ width: "90%", marginTop: `10px` }}
+        onClick={handleGeneratePaperClick}
+      >
+        Generate Paper
+      </Button>
     </Drawer>
   );
 };

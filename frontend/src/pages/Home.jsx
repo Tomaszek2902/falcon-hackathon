@@ -1,38 +1,33 @@
 import React, { useState } from "react";
-import { Typography, Box } from "@mui/material";
+import { Box } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import DrawerMenu from "../components/Home/DrawerMenu";
 
-const initialQueries = [
+const tabs = [
   {
     id: 1,
-    query: "Sample Paper 1",
-    difficulty: "easy",
-    subject: "maths",
-    questionFormat: "MCQ",
-    numberOfQuestions: 10,
+    query: "Set Paper Format",
   },
   {
     id: 2,
-    query: "Sample Paper 2",
-    difficulty: "hard",
-    subject: "english",
-    questionFormat: "MCQ",
-    numberOfQuestions: 10,
+    query: "Upload Past Year Papers",
   },
-  // Add more queries here
+  {
+    id: 3,
+    query: "Generate Question Paper",
+  },
 ];
 
 const drawerWidth = 240;
 
 const Home = () => {
-  const [queries, setQueries] = useState(initialQueries);
+  const [processId, setProcessId] = useState();
 
   return (
     <Box sx={{ display: "flex" }}>
-      <DrawerMenu items={queries} />
+      <DrawerMenu tabs={tabs} setProcessId={setProcessId} />
       <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
-        <Outlet context={{ queries, setQueries }} />
+        <Outlet processId={processId} />
       </Box>
     </Box>
   );

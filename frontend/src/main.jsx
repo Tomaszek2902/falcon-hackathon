@@ -6,6 +6,7 @@ import App from "./App";
 import About from "./pages/About";
 import Home from "./pages/Home";
 import QueryDetail from "./pages/QueryDetail";
+import UploadPaper from "./components/Home/UploadPaper";
 
 const router = createBrowserRouter([
   {
@@ -17,8 +18,12 @@ const router = createBrowserRouter([
         element: <Home />,
         children: [
           {
-            path: "queries/:id",
+            path: "tabs/1",
             element: <QueryDetail />,
+          },
+          {
+            path: "tabs/2",
+            element: <UploadPaper />,
           },
         ],
       },
