@@ -1,20 +1,20 @@
 import re
-from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask import Flask, jsonify, request, send_file
 from dotenv import load_dotenv
 from ai71 import AI71 
-from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.utils import secure_filename
-from pypdf import PdfReader 
 from time import *
 from pdf2image import convert_from_path
-from PIL import Image
 from flask_cors import CORS
 
 import os
 import json
 import shutil
 import pytesseract
+import string
+import textwrap
+from fpdf import FPDF
 
 load_dotenv()
 
@@ -97,7 +97,7 @@ def generate():
         data = request.get_json()
         process_id = data['process_id']
         metadata = {}   # subject, difficulty, formatQ, numQ
-        
+
         db_path = os.path.join(current_path, "db", process_id)
         if not os.path.exists(db_path):
             return jsonify({'error': 'Data does not exist!'}), 400 
@@ -119,21 +119,42 @@ def generate():
                 doc = convert_from_path(filepath, poppler_path=os.path.join(current_path, "poppler\poppler-24.07.0\Library\\bin"))
 
                 raw_txt_data = ""
-                for no, data in enumerate(doc):                
-                    raw_txt_data += re.sub("\\\\n|www.sgexam.com", "", str(pytesseract.image_to_string(data).encode("utf-8")))
+                for _, data in enumerate(doc):                
+                    raw_txt_data += re.sub("\\\\n|www.sgexam.com", "", str(pytesseract.image_to_string(data).encode("ascii", "ignore")))
+                filtered_txt_data = ''.join(filter(lambda x: x in set(string.printable), raw_txt_data))
+                t_file.write(filtered_txt_data)
 
-                qa_list = re.split(r'END OF PAPER', raw_txt_data)
+                # qa_list = re.split(r'END OF PAPER', raw_txt_data)
+                # for i in range(0, len(qa_list) - 1):
+                #     questions = filter(lambda x: re.match('^\d+\.', x), re.split(r'(?=\d+\.)', qa_list[i]))
+                #     answers = filter(lambda x: re.match('^Q\d{1,2}', x), re.split(r'(?=Q\d{1,2})', qa_list[len(qa_list) - 1]))
+                #     t_file.write("\n\nQuestions: \n\n")
+                #     t_file.write("\n\n".join(questions))
+                #     t_file.write("\n\n")
+                #     t_file.write("Answers: \n\n")
+                #     t_file.write("\n\n".join(answers))
 
-                for i in range(0, len(qa_list) - 1):
-                    questions = filter(lambda x: re.match('^\d+\.', x), re.split(r'(?=\d+\.)', qa_list[i]))
-                    answers = filter(lambda x: re.match('^Q\d{1,2}', x), re.split(r'(?=Q\d{1,2})', qa_list[len(qa_list) - 1]))
-                    t_file.write("\n\nQuestions: \n\n")
-                    t_file.write("\n\n".join(questions))
-                    t_file.write("\n\n")
-                    t_file.write("Answers: \n\n")
-                    t_file.write("\n\n".join(answers))
-                t_file.write("========================\n")
-            return jsonify({'status': True}), 200
+                context = f"You are a high school teacher. Based on the provided raw text of questions and answers above, create new questions and solutions with {metadata['difficulty']} difficulty, {metadata['formatQ'].replace(',', ' and ')} question types included and a total of {metadata['numQ']} questions." + " The response format must conform to the given JSON structure: {\"questions\": [{ \"question\": \"What is the Pythagorean theorem?\", \"answer\": \"The Pythagorean theorem states that in a right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides.\" },{ \"question\": \"How do you find the area of a triangle?\", \"answer\": \"The area of a triangle is calculated by multiplying the base by the height and dividing by 2.\" }]}. To achieve this: 0.) Segregate the text above into separate questions and solutions, classify properly which is question which is solutions.1. Identify the Subject and Scope: Analyze the sample questions to determine the subject (e.g., mathematics, history, physics) and the scope of the questions. 2. Generate New Questions: Create a new set of questions that fit within the same subject and scope. Ensure the questions are unique but maintain the same style and complexity as the sample. 3. Format Consistency: Ensure the new questions and answers are formatted exactly as specified in the JSON structure. "
+                llm_response = falcon_ai_client.chat.completions.create(
+                    model="tiiuae/falcon-180B-chat",
+                    messages=[
+                        {"role": "system", "content": context},
+                        {"role": "user", "content": filtered_txt_data},
+                    ]   
+                ).choices[0].message.content
+
+                generated_qa_data = clean_and_convert_to_dict(llm_response)
+                qa_text_data = ""
+                i = 1
+                for qa in generated_qa_data['questions']:
+                    qa_text_data += f"{i}. {qa['question']}\n"
+                    qa_text_data += f"Answer: {qa['answer']}\n\n\n"
+                    i += 1
+                text_to_pdf(qa_text_data, os.path.join(db_path, "generated_paper.pdf"))
+                return send_file(os.path.join(db_path, "generated_paper.pdf"), as_attachment=True)
+                # return jsonify({'response': llm_response, 'status': 'success'}), 200
+
+        return jsonify({'error': 'An error occured!'}), 400
     else:
         return jsonify({'error': 'Request data should be JSON!'}), 400
 
@@ -169,6 +190,44 @@ def prompt_llm():
         return jsonify({'response': llm_response}), 200
     else:
         return jsonify({'error': 'Request data should be JSON!'}), 400
+
+def clean_and_convert_to_dict(input_string):
+    # Remove unwanted characters and new lines
+    cleaned_string = input_string.strip()
+    
+    # Ensure the string is a valid JSON format (adding missing parts if needed)
+    cleaned_string += '"785"}]}'
+    
+    # Convert to a dictionary
+    result_dict = json.loads(cleaned_string)
+    
+    return result_dict
+
+def text_to_pdf(text, filename):
+    a4_width_mm = 210
+    pt_to_mm = 0.35
+    fontsize_pt = 10
+    fontsize_mm = fontsize_pt * pt_to_mm
+    margin_bottom_mm = 10
+    character_width_mm = 7 * pt_to_mm
+    width_text = a4_width_mm / character_width_mm
+
+    pdf = FPDF(orientation='P', unit='mm', format='A4')
+    pdf.set_auto_page_break(True, margin=margin_bottom_mm)
+    pdf.add_page()
+    pdf.set_font(family='Courier', size=fontsize_pt)
+    splitted = text.split('\n')
+
+    for line in splitted:
+        lines = textwrap.wrap(line, width_text)
+
+        if len(lines) == 0:
+            pdf.ln()
+
+        for wrap in lines:
+            pdf.cell(0, fontsize_mm, wrap, ln=1)
+
+    pdf.output(filename, 'F')
 
 if __name__ == '__main__':
     app.run(debug=True)
