@@ -12,22 +12,18 @@ const tabs = [
     id: 2,
     query: "Upload Past Year Papers",
   },
-  {
-    id: 3,
-    query: "Generate Question Paper",
-  },
 ];
 
 const drawerWidth = 240;
 
 const Home = () => {
-  const [processId, setProcessId] = useState();
+  const [processId, setProcessId] = useState(1);
 
   return (
     <Box sx={{ display: "flex" }}>
-      <DrawerMenu tabs={tabs} setProcessId={setProcessId} />
+      <DrawerMenu tabs={tabs} processId={processId} />
       <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
-        <Outlet processId={processId} />
+        <Outlet context={{ setProcessId }} />
       </Box>
     </Box>
   );

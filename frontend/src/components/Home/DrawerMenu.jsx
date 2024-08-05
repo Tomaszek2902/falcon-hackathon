@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Drawer, List, ListItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { generatePaperService } from "../../services/SetAndGenerate";
+import { generatePaperService } from "../../services/SetAndGenerateService";
 import { saveAs } from "file-saver";
 
 const drawerWidth = 240;
@@ -49,7 +49,7 @@ const DrawerMenu = ({ tabs, processId }) => {
         ))}
       </List>
       <Button
-        sx={{ width: "90%", marginTop: `10px` }}
+        sx={{ width: "80%", margin: `20px` }}
         onClick={handleGeneratePaperClick}
       >
         Generate Paper

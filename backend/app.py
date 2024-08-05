@@ -190,6 +190,24 @@ def prompt_llm():
         return jsonify({'response': llm_response}), 200
     else:
         return jsonify({'error': 'Request data should be JSON!'}), 400
+    
+
+@app.route('/api/createPDF', methods=['POST'])
+def create_pdf():
+        if request.is_json:
+            data = request.get_json()
+            process_id = data['process_id']
+            
+            # Generate the PDF with the process_id
+            pdf = FPDF(orientation='P', unit='mm', format='A4')
+            pdf.add_page()
+            pdf.set_font(family='Arial', size=12)
+            pdf.cell(0, 10, f"PDF for process_id: {process_id}", ln=True)
+            pdf.output(os.path.join(current_path, f"{process_id}.pdf"), 'F')
+            
+            return send_file(os.path.join(current_path, f"{process_id}.pdf"), as_attachment=True)
+        else:
+            return jsonify({'error': 'Request data should be JSON!'}), 400
 
 def clean_and_convert_to_dict(input_string):
     # Remove unwanted characters and new lines
