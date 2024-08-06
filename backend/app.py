@@ -239,15 +239,20 @@ def prompt_llm():
         return jsonify({'error': 'Request data should be JSON!'}), 400
 
 def clean_and_convert_to_dict(input_string):
-    # # Remove unwanted characters and new lines
-    # cleaned_string = input_string.strip()
-    
-    # # Ensure the string is a valid JSON format (adding missing parts if needed)
-    # cleaned_string += '"785"}]}'
-    
     # Convert to a dictionary
-    result_dict = json.loads(input_string)
-    
+    # result_dict = json.loads(input_string)
+    # return result_dict
+
+    result_dict = {}
+    while True:
+        try:
+            result_dict = json.loads(input_string)
+            break
+        except Exception:
+            input_string = input_string[:-1]
+            if input_string[-1] == "}":
+                input_string += "]}"
+            continue
     return result_dict
 
 def text_to_pdf(text, filename):
