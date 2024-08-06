@@ -23,7 +23,7 @@ const Home = () => {
     <Box sx={{ display: "flex" }}>
       <DrawerMenu tabs={tabs} processId={processId} />
       <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
-        <Outlet context={{ setProcessId }} />
+        <Outlet context={{ processId, setProcessId }} />
       </Box>
     </Box>
   );

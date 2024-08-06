@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { TextField, Button, Container, Typography, Box } from "@mui/material";
-import { setPaperService } from "../../services/SetAndGenerateService";
 
 export const QueryDetails = () => {
   const [subject, setSubject] = useState("");

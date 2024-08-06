@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { Button, Typography, Box } from "@mui/material";
+import { useOutletContext } from "react-router-dom";
 import UploadPaperService from "../../services/UploadPaperService";
 
 const UploadPaper = () => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const { processId } = useOutletContext();
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
-
-  console.log(import.meta.env.VITE_BACKEND_URL);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -20,7 +20,7 @@ const UploadPaper = () => {
     }
 
     try {
-      const response = await UploadPaperService.uploadExamPaper(file);
+      const response = await UploadPaperService.uploadExamPaper(file, processId);
       setMessage("File uploaded successfully!");
       console.log(response);
     } catch (error) {

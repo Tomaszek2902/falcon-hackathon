@@ -1,10 +1,10 @@
 import axios from "axios";
 
 const UploadPaperService = {
-  uploadExamPaper: async (file) => {
+  uploadExamPaper: async (file, process_id) => {
     try {
       const formData = new FormData();
-      formData.append("process_id", "1");
+      formData.append("process_id", process_id);
       formData.append("content", file);
 
       const response = await axios.post(

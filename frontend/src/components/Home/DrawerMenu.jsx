@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Drawer, List, ListItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { generatePaperService } from "../../services/SetAndGenerateService";
