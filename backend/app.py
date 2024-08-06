@@ -133,8 +133,54 @@ def generate():
                 #     t_file.write("\n\n")
                 #     t_file.write("Answers: \n\n")
                 #     t_file.write("\n\n".join(answers))
+                
+                context = f"""You are a high school teacher tasked with creating new educational content based on existing material. Your goal is to generate new questions and answers that align with the style, subject, and difficulty level of the provided examples.
 
-                context = f"You are a high school teacher. Based on the provided raw text of questions and answers above, create new questions and solutions with {metadata['difficulty']} difficulty, {metadata['formatQ'].replace(',', ' and ')} question types included and a total of {metadata['numQ']} questions." + " The response format must conform to the given JSON structure: {\"questions\": [{ \"question\": \"What is the Pythagorean theorem?\", \"answer\": \"The Pythagorean theorem states that in a right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides.\" },{ \"question\": \"How do you find the area of a triangle?\", \"answer\": \"The area of a triangle is calculated by multiplying the base by the height and dividing by 2.\" }]}. To achieve this: 0.) Segregate the text above into separate questions and solutions, classify properly which is question which is solutions.1. Identify the Subject and Scope: Analyze the sample questions to determine the subject (e.g., mathematics, history, physics) and the scope of the questions. 2. Generate New Questions: Create a new set of questions that fit within the same subject and scope. Ensure the questions are unique but maintain the same style and complexity as the sample. 3. Format Consistency: Ensure the new questions and answers are formatted exactly as specified in the JSON structure. "
+                                First, carefully examine the following sample questions and answers:
+
+                                1. Question: 'What is the Pythagorean theorem?'
+                                Answer: 'The Pythagorean theorem states that in a right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides.'
+
+                                2. Question: 'How do you find the area of a triangle?'
+                                Answer: 'The area of a triangle is calculated by multiplying the base by the height and dividing by 2.'
+
+                                Now, follow these steps to create new content:
+
+                                1. Identify the Subject and Scope: 
+                                Analyze the sample questions to determine the subject (in this case, mathematics) and the specific topics covered (geometry, basic formulas).
+
+                                2. Generate New Questions: 
+                                Create a new set of {{metadata['numQ']}} questions that fit within the same subject and scope. Ensure the questions are unique but maintain the same style and complexity as the samples. The questions should be of {{metadata['difficulty']}} difficulty and include {{metadata['formatQ']}} question types.
+
+                                3. Provide Answers: 
+                                For each new question, provide a clear and concise answer that matches the level of detail in the sample answers.
+
+                                4. Format the Output: 
+                                Present your new questions and answers in the exact JSON structure provided below. Do not deviate from this format:
+
+                                {{
+                                "questions": [
+                                    {{
+                                    "question": "Your new question here",
+                                    "answer": "Your new answer here"
+                                    }},
+                                    {{
+                                    "question": "Your second new question here",
+                                    "answer": "Your second new answer here"
+                                    }}
+                                ]
+                                }}
+
+                                Important Notes:
+                                - Ensure that your new questions and answers are different from the samples but related to the same subject.
+                                - Maintain the {{metadata['difficulty']}} difficulty level as specified.
+                                - Include {{metadata['formatQ']}} question types as requested.
+                                - Generate exactly {{metadata['numQ']}} questions.
+                                - Double-check that your output strictly follows the provided JSON structure.
+                                - Do not include any additional text or explanations outside of the JSON structure.
+
+                                Please proceed with generating new questions and answers based on these instructions."""
+                
                 llm_response = falcon_ai_client.chat.completions.create(
                     model="tiiuae/falcon-180B-chat",
                     messages=[
