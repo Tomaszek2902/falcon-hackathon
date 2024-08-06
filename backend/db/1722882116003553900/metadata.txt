@@ -1,1 +1,0 @@
-{"subject": "Math", "difficulty": "Hard", "formatQ": "MCQ", "numQ": "20"}

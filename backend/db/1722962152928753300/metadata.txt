@@ -1,1 +1,0 @@
-{"subject": "History", "difficulty": "Hard", "formatQ": "Subjective", "numQ": "5"}

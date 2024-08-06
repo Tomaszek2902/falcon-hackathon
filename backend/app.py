@@ -150,7 +150,7 @@ def generate():
                                 Analyze the sample questions to determine the subject (in this case, mathematics) and the specific topics covered (geometry, basic formulas).
 
                                 2. Generate New Questions: 
-                                Create a new set of {{metadata['numQ']}} questions that fit within the same subject and scope. Ensure the questions are unique but maintain the same style and complexity as the samples. The questions should be of {{metadata['difficulty']}} difficulty and include {{metadata['formatQ']}} question types.
+                                Create a new set of {metadata['numQ']} questions that fit within the same subject and scope. Ensure the questions are unique but maintain the same style and complexity as the samples. The questions should be of {metadata['difficulty']} difficulty and include {metadata['formatQ']} question types.
 
                                 3. Provide Answers: 
                                 For each new question, provide a clear and concise answer that matches the level of detail in the sample answers.
@@ -173,9 +173,9 @@ def generate():
 
                                 Important Notes:
                                 - Ensure that your new questions and answers are different from the samples but related to the same subject.
-                                - Maintain the {{metadata['difficulty']}} difficulty level as specified.
-                                - Include {{metadata['formatQ']}} question types as requested.
-                                - Generate exactly {{metadata['numQ']}} questions.
+                                - Maintain the {metadata['difficulty']} difficulty level as specified.
+                                - Include {metadata['formatQ']} question types as requested.
+                                - Generate exactly {metadata['numQ']} questions.
                                 - Double-check that your output strictly follows the provided JSON structure.
                                 - Do not include any additional text or explanations outside of the JSON structure.
 
@@ -188,6 +188,7 @@ def generate():
                         {"role": "user", "content": filtered_txt_data},
                     ]   
                 ).choices[0].message.content
+                print(llm_response)
 
                 generated_qa_data = clean_and_convert_to_dict(llm_response)
                 qa_text_data = ""
@@ -256,14 +257,14 @@ def create_pdf():
             return jsonify({'error': 'Request data should be JSON!'}), 400
 
 def clean_and_convert_to_dict(input_string):
-    # Remove unwanted characters and new lines
-    cleaned_string = input_string.strip()
+    # # Remove unwanted characters and new lines
+    # cleaned_string = input_string.strip()
     
-    # Ensure the string is a valid JSON format (adding missing parts if needed)
-    cleaned_string += '"785"}]}'
+    # # Ensure the string is a valid JSON format (adding missing parts if needed)
+    # cleaned_string += '"785"}]}'
     
     # Convert to a dictionary
-    result_dict = json.loads(cleaned_string)
+    result_dict = json.loads(input_string)
     
     return result_dict
 
