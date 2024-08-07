@@ -11,7 +11,7 @@ WORKDIR /app
 # Install poppler-utils
 RUN apt-get update \
     && apt-get install -y poppler-utils \
-    && apt install tesseract-ocr\
+    && apt-get install tesseract-ocr\
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
