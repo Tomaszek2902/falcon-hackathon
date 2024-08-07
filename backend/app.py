@@ -116,7 +116,7 @@ def generate():
             for content_name in contents_name_list:
                 t_file.write(f"[{content_name}]\n")
                 filepath = os.path.join(db_contents_path, content_name)
-                doc = convert_from_path(filepath, poppler_path=os.path.join(current_path, "poppler\poppler-24.07.0\Library\\bin"))
+                doc = convert_from_path(filepath, poppler_path=os.path.join(current_path, "poppler/poppler-24.07.0/Library/bin"))
 
                 raw_txt_data = ""
                 for _, data in enumerate(doc):                
