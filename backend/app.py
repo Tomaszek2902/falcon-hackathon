@@ -22,7 +22,6 @@ app = Flask(__name__)
 CORS(app)
 current_path = os.path.abspath(os.getcwd())
 falcon_ai_client = AI71(os.getenv("FALCON_API_KEY"))
-pytesseract.pytesseract.tesseract_cmd = os.path.join(current_path, "tesseract", "tesseract.exe")
 
 # Endpoints
 #   1.  Set Paper API
